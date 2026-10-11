@@ -1,0 +1,8 @@
+sqlmodel>=0.0.22
+fastapi>=0.115.0
+uvicorn>=0.30.0
+pydantic>=2.8.0
+python-dotenv>=1.0.0
+streamlit>=1.38.0
+google-genai>=0.1.1
+pytest>=8.0.0
