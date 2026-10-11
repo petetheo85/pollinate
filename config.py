@@ -3,6 +3,7 @@
 import os
 from pathlib import Path
 from typing import Optional
+
 from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -12,37 +13,38 @@ load_dotenv(PROJECT_ROOT / ".env", override=False)
 
 BIND_HOST = "127.0.0.1"
 
-GEMINI_API_KEY_PLACEHOLDER = "your_gemini_api_key_here"
+LLM_API_KEY_PLACEHOLDER = "your_llm_api_key_here"
+MODEL_NAME_PLACEHOLDER = "your_model_name_here"
 CAPTURE_TOKEN_PLACEHOLDER = "generate_a_token_and_paste_it_here"
 # Minimum length ensures sufficient entropy for bearer authorization tokens
 MIN_TOKEN_LENGTH = 24
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "").strip()
+LLM_API_KEY = os.getenv("LLM_API_KEY", "").strip()
 CAPTURE_TOKEN = os.getenv("CAPTURE_TOKEN", "").strip()
 
-SUPPORTED_MODELS = {
-    "gemini-2.5-flash",
-    "gemini-2.5-pro",
-    "gemini-2.0-flash",
-    "gemini-2.0-flash-lite",
-    "gemini-1.5-flash",
-    "gemini-1.5-pro",
-}
-
-MODEL_NAME = os.getenv("MODEL_NAME", "gemini-2.5-flash").strip()
+raw_model = os.getenv("MODEL_NAME")
+MODEL_NAME: Optional[str] = raw_model.strip() if raw_model and raw_model.strip() else None
 CAPTURE_PORT = int(os.getenv("CAPTURE_PORT", "8765"))
 
-# Resolving against PROJECT_ROOT prevents split-brain SQLite files when processes run from different working directories
-_env_db_path = os.getenv("DB_PATH", "").strip()
-if _env_db_path:
-    _raw_path = Path(_env_db_path)
-    DB_PATH: Path = _raw_path if _raw_path.is_absolute() else (PROJECT_ROOT / _raw_path).resolve()
-else:
-    DB_PATH: Path = (PROJECT_ROOT / "pollinate.db").resolve()
+def resolve_db_path(raw_path: Optional[str] = None) -> Path:
+    """Resolves database path against PROJECT_ROOT unless already absolute."""
+    if not raw_path or not raw_path.strip():
+        return (PROJECT_ROOT / "pollinate.db").resolve()
+    target = Path(raw_path.strip())
+    if target.is_absolute():
+        return target
+    return (PROJECT_ROOT / target).resolve()
 
-# Derived weight guarantees weights sum to 1.0 without config drift
-REL_WEIGHT = 0.6
-OPP_WEIGHT = 1.0 - REL_WEIGHT
+
+# Resolving against PROJECT_ROOT prevents split-brain SQLite files when processes run from different working directories
+DB_PATH: Path = resolve_db_path(os.getenv("DB_PATH", ""))
+
+# Limits and timeouts for inline extraction and drafting
+MAX_SELECTION_CHARS = 15000
+MAX_PRIOR_COMMENTS_IN_PROMPT = 5
+LLM_TIMEOUT_SECONDS = 30.0
+# Hard deadline capping cumulative LLM round-trips for repeat author drafting
+TOTAL_DEADLINE_SECONDS = 60.0
 
 RETRY_LIMIT = 3
 OUTREACH_MIN_COMMENTS = 2
@@ -59,20 +61,24 @@ def validate_settings(
     model: Optional[str] = None,
 ) -> None:
     """Validates required credentials, token length, and model name at startup."""
-    key_to_check = GEMINI_API_KEY if api_key is None else api_key.strip()
+    key_to_check = LLM_API_KEY if api_key is None else api_key.strip()
     token_to_check = CAPTURE_TOKEN if token is None else token.strip()
-    model_to_check = MODEL_NAME if model is None else model.strip()
+    model_to_check = (
+        MODEL_NAME
+        if model is None
+        else (model.strip() if model and model.strip() else "")
+    )
 
     if not key_to_check:
         raise ValueError(
-            "GEMINI_API_KEY is missing or empty. "
-            "Set GEMINI_API_KEY in your .env file or environment."
+            "LLM_API_KEY is missing or empty. "
+            "Set LLM_API_KEY in your .env file or environment."
         )
 
-    if key_to_check == GEMINI_API_KEY_PLACEHOLDER:
+    if key_to_check == LLM_API_KEY_PLACEHOLDER:
         raise ValueError(
-            "GEMINI_API_KEY is still set to the placeholder value. "
-            "Replace it with your actual Gemini API key in .env."
+            "LLM_API_KEY is still set to the placeholder value. "
+            "Replace it with your actual LLM API key in .env."
         )
 
     if not token_to_check:
@@ -96,10 +102,13 @@ def validate_settings(
         )
 
     if not model_to_check:
-        raise ValueError("MODEL_NAME cannot be empty.")
-
-    if not (model_to_check.startswith("gemini-") or model_to_check in SUPPORTED_MODELS):
         raise ValueError(
-            f"Configured MODEL_NAME '{model_to_check}' is not a recognized Gemini model name. "
-            f"Expected a model like 'gemini-2.5-flash' or 'gemini-2.5-pro'."
+            "MODEL_NAME is missing or empty. "
+            "Set MODEL_NAME in your .env file or environment."
+        )
+
+    if model_to_check == MODEL_NAME_PLACEHOLDER:
+        raise ValueError(
+            "MODEL_NAME is still set to the placeholder value. "
+            "Replace it with your actual model name in .env."
         )

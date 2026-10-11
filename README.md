@@ -20,6 +20,13 @@ Settings follow strict engineering principles:
 3. **No Drift:** Non-secret tuning constants (weights, retry limits, thresholds, SQLite timeouts) live directly in `config.py` rather than `.env`.
 4. **Shared Database Path:** Relative database paths resolve against the project root (`PROJECT_ROOT`), ensuring both the capture server and Streamlit app always share the exact same SQLite database.
 
+### Supported Provider
+
+The application currently supports Gemini via Google's SDK (`google-genai`).
+* `LLM_API_KEY`: A Google AI API key.
+* `MODEL_NAME`: Must be a model supported by the Gemini API. Refer to the [Gemini models documentation](https://ai.google.dev/gemini-api/docs/models).
+* Other providers are not supported yet.
+
 ### Environment Variables
 
 Copy `.env.example` to `.env`:
@@ -29,9 +36,9 @@ cp .env.example .env
 
 | Variable | Required | Description |
 |---|---|---|
-| `GEMINI_API_KEY` | Yes | Your Google Gemini API key. |
+| `LLM_API_KEY` | Yes | Google AI API key for Gemini. |
+| `MODEL_NAME` | Yes | Model identifier supported by the Gemini API. |
 | `CAPTURE_TOKEN` | Yes | Bearer token authenticating capture requests. Generate below. |
-| `MODEL_NAME` | Optional | Gemini model name (default: `gemini-2.5-flash`). |
 | `CAPTURE_PORT` | Optional | Local port for FastAPI capture server (default: `8765`). |
 | `DB_PATH` | Optional | SQLite database path (default: `pollinate.db`, resolved to project root). |
 
