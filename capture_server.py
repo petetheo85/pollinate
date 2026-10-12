@@ -1,7 +1,7 @@
 """Local FastAPI server for capturing LinkedIn post selections from the Chrome extension."""
 
-from contextlib import asynccontextmanager
 import hmac
+from contextlib import asynccontextmanager
 from typing import Generator, Optional
 
 from fastapi import Depends, FastAPI, Header, HTTPException, status
@@ -10,8 +10,14 @@ from fastapi.responses import JSONResponse
 from sqlmodel import Session, func, select
 
 import config
-from config import BIND_HOST, CAPTURE_PORT, MAX_SELECTION_CHARS, validate_settings
-from db import InvalidStatusTransitionError, get_engine, init_db, transition_post_status
+from config import BIND_HOST, CAPTURE_PORT, MAX_SELECTION_CHARS, MIN_SELECTION_CHARS, validate_settings
+from db import (
+    InvalidStatusTransitionError,
+    get_engine,
+    get_or_create_author,
+    init_db,
+    transition_post_status,
+)
 from llm import LLMError
 from models import (
     DraftRequest,
@@ -96,6 +102,11 @@ def draft_post(
     session: Session = Depends(get_db_session),
 ):
     """Captures post selection and generates inline comment drafts synchronously in threadpool."""
+    if len(req.selected_text.strip()) < MIN_SELECTION_CHARS:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Selection must be at least {MIN_SELECTION_CHARS} characters.",
+        )
     if len(req.selected_text) > MAX_SELECTION_CHARS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -218,6 +229,14 @@ def mark_post_posted(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Post {post_id} not found.",
         )
+
+    # Re-link post to author if user provided or corrected the author name
+    if req.author_name and req.author_name.strip():
+        author = get_or_create_author(session, req.author_name.strip())
+        post.author_id = author.id
+        session.add(post)
+        session.commit()
+        session.refresh(post)
 
     try:
         updated = transition_post_status(

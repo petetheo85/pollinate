@@ -251,10 +251,27 @@
       padding: 14px;
     }
 
-    .author-name {
+    .author-name-input {
       font-size: 14px;
       font-weight: 600;
       color: var(--text);
+      background: transparent;
+      border: 1px solid transparent;
+      border-radius: 4px;
+      padding: 2px 4px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.15s ease, background-color 0.15s ease;
+    }
+
+    .author-name-input:hover {
+      border-color: var(--border);
+      background-color: var(--card-subtle);
+    }
+
+    .author-name-input:focus {
+      border-color: var(--accent);
+      background-color: var(--card-subtle);
     }
 
     .author-headline {
@@ -526,7 +543,7 @@
 
     <!-- Card 1: Post Metadata -->
     <div class="card">
-      <div id="post-author" class="author-name"></div>
+      <input type="text" id="post-author-input" class="author-name-input" placeholder="Author Name" title="Click to edit author name">
       <div id="post-headline" class="author-headline"></div>
       <div class="score-pills">
         <span id="pill-relevance" class="pill pill-accent" title="Relevance (1-10): Alignment between this post and your expertise in context/profile.md"></span>
@@ -551,7 +568,7 @@
     <!-- Card 3: Refine & Regenerate -->
     <div class="card refine-card">
       <div class="card-section-title">Refine & Regenerate</div>
-      <input type="text" id="regen-guidance-input" class="guidance-input" placeholder="Custom steering (e.g. focus on latency, candid)...">
+      <input type="text" id="regen-guidance-input" class="guidance-input" maxlength="500" placeholder="Custom steering (e.g. focus on latency, candid)...">
       <div class="refine-actions">
         <button id="btn-simplify" class="btn btn-secondary" title="Regenerate with simpler, punchier phrasing">Simplify</button>
         <button id="btn-regenerate" class="btn btn-secondary-accent">Regenerate</button>

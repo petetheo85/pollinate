@@ -62,6 +62,17 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
     chrome.sidePanel.open({ tabId: tab.id }).catch(() => {});
   }
 
+  if (selectionText.length < 30) {
+    await chrome.storage.local.set({
+      pollinate_state: {
+        status: "error",
+        message: "Selection is too short (minimum 30 characters). Please highlight the full post.",
+      },
+    });
+    showTemporaryBadge("ERR", "#d9534f", 3000);
+    return;
+  }
+
   const { port, token } = await getConfig();
   if (!token) {
     await chrome.storage.local.set({

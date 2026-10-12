@@ -346,7 +346,8 @@ def transition_post_status(
 
         if post.author_id:
             author = session.get(Author, post.author_id)
-            if author:
+            # Anonymous captures must not accumulate interaction tallies or contaminate repeat author tracking
+            if author and author.key != "unknown":
                 author.comments_posted += 1
                 author.last_interaction_at = now
                 author.updated_at = now

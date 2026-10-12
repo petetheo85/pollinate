@@ -104,7 +104,7 @@ def generate_inline_drafts(
             )
 
         prior_interaction: Optional[PriorInteractionInfo] = None
-        if author.comments_posted > 0:
+        if author.key != "unknown" and author.comments_posted > 0:
             prior_interaction = PriorInteractionInfo(
                 comments_posted=author.comments_posted,
                 last_interaction_at=author.last_interaction_at,

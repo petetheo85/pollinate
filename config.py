@@ -40,7 +40,9 @@ def resolve_db_path(raw_path: Optional[str] = None) -> Path:
 DB_PATH: Path = resolve_db_path(os.getenv("DB_PATH", ""))
 
 # Limits and timeouts for inline extraction and drafting
+MIN_SELECTION_CHARS = 30
 MAX_SELECTION_CHARS = 15000
+MAX_GUIDANCE_CHARS = 500
 MAX_PRIOR_COMMENTS_IN_PROMPT = 5
 LLM_TIMEOUT_SECONDS = 30.0
 # Hard deadline capping cumulative LLM round-trips for repeat author drafting

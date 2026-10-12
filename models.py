@@ -185,10 +185,11 @@ class DraftRequest(BaseModel):
 
 class PostPostedRequest(BaseModel):
     final_comment: str
+    author_name: Optional[str] = None
 
 
 class RegenerateRequest(BaseModel):
-    guidance: Optional[str] = None
+    guidance: Optional[str] = PydanticField(default=None, max_length=500)
 
 
 class ProfilePayload(BaseModel):

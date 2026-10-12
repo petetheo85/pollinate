@@ -64,7 +64,10 @@ function renderPost(data) {
   currentDraftIndex = 0;
 
   // Metadata
-  document.getElementById("post-author").textContent = data.author_name || "Unknown Author";
+  const authorInput = document.getElementById("post-author-input");
+  if (authorInput) {
+    authorInput.value = data.author_name || "";
+  }
   document.getElementById("post-headline").textContent = data.author_headline || "";
   document.getElementById("pill-relevance").textContent = `Relevance: ${data.relevance_score}/10`;
   document.getElementById("pill-opportunity").textContent = `Opportunity: ${data.opportunity_score}/10`;
@@ -167,6 +170,9 @@ document.getElementById("btn-mark-posted").addEventListener("click", async () =>
   markBtn.textContent = "Saving...";
   markBtn.disabled = true;
 
+  const authorInput = document.getElementById("post-author-input");
+  const authorName = authorInput ? authorInput.value.trim() : "";
+
   try {
     const response = await fetch(`http://127.0.0.1:${port}/posts/${currentPostData.post_id}/posted`, {
       method: "POST",
@@ -174,7 +180,10 @@ document.getElementById("btn-mark-posted").addEventListener("click", async () =>
         "Content-Type": "application/json",
         "X-Capture-Token": token,
       },
-      body: JSON.stringify({ final_comment: finalComment }),
+      body: JSON.stringify({
+        final_comment: finalComment,
+        author_name: authorName || undefined,
+      }),
     });
 
     if (response.ok) {

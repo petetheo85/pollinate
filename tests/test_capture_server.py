@@ -12,6 +12,7 @@ import config
 from db import get_engine, init_db
 from llm import LLMError
 from models import (
+    Author,
     Draft,
     DraftAngle,
     DraftResponse,
@@ -85,6 +86,17 @@ def test_draft_rejects_oversize_selection_with_400(server_client):
     assert "maximum character limit" in resp.json()["detail"]
 
 
+def test_draft_rejects_undersize_selection_with_400(server_client):
+    client, _ = server_client
+    payload = {
+        "selected_text": "too short",
+        "url": "https://www.linkedin.com/posts/undersize-1",
+    }
+    resp = client.post("/draft", json=payload, headers=auth_headers())
+    assert resp.status_code == 400
+    assert "at least" in resp.json()["detail"]
+
+
 def test_draft_llm_error_returns_502_with_post_id_and_keeps_captured_post(server_client, monkeypatch):
     client, db_file = server_client
 
@@ -98,7 +110,7 @@ def test_draft_llm_error_returns_502_with_post_id_and_keeps_captured_post(server
     monkeypatch.setattr(capture_server, "generate_inline_drafts", fake_generate_drafts)
 
     payload = {
-        "selected_text": "valid short selection",
+        "selected_text": "valid selection that is comfortably longer than thirty characters",
         "url": "https://www.linkedin.com/posts/test-llm-error",
     }
     resp = client.post("/draft", json=payload, headers=auth_headers())
@@ -125,7 +137,7 @@ def test_draft_other_exception_returns_500_keeps_captured_post_and_does_not_leak
     monkeypatch.setattr(capture_server, "generate_inline_drafts", fake_generate_drafts_crash)
 
     payload = {
-        "selected_text": "valid short selection",
+        "selected_text": "valid selection that is comfortably longer than thirty characters",
         "url": "https://www.linkedin.com/posts/test-other-error",
     }
     resp = client.post("/draft", json=payload, headers=auth_headers())
@@ -355,3 +367,53 @@ def test_get_and_update_profile(server_client, tmp_path, monkeypatch):
     assert resp_put.status_code == 200
     assert "Focus: AI Systems" in resp_put.json()["content"]
     assert test_profile_path.read_text(encoding="utf-8") == "# Updated Profile\n- Focus: AI Systems"
+
+
+def test_posts_posted_with_author_name_overrides_author(server_client):
+    client, db_file = server_client
+    with Session(get_engine(str(db_file))) as session:
+        post = Post(
+            url="https://linkedin.com/post/override-author",
+            raw_text="sample text selection that is sufficiently long",
+            status=PostStatus.DRAFTED.value,
+        )
+        session.add(post)
+        session.commit()
+        session.refresh(post)
+        post_id = post.id
+
+    resp = client.post(
+        f"/posts/{post_id}/posted",
+        json={"final_comment": "great insight", "author_name": "Dr. Sarah Connor"},
+        headers=auth_headers(),
+    )
+    assert resp.status_code == 200
+
+    with Session(get_engine(str(db_file))) as session:
+        post = session.get(Post, post_id)
+        assert post.status == PostStatus.POSTED.value
+        assert post.author_id is not None
+        author = session.get(Author, post.author_id)
+        assert author.name == "Sarah Connor"
+        assert author.comments_posted == 1
+
+
+def test_regenerate_rejects_oversized_guidance(server_client):
+    client, db_file = server_client
+    with Session(get_engine(str(db_file))) as session:
+        post = Post(
+            url="https://linkedin.com/post/guidance-oversize",
+            raw_text="sample text selection long enough",
+            status=PostStatus.DRAFTED.value,
+        )
+        session.add(post)
+        session.commit()
+        session.refresh(post)
+        post_id = post.id
+
+    resp = client.post(
+        f"/posts/{post_id}/regenerate",
+        json={"guidance": "a" * (config.MAX_GUIDANCE_CHARS + 1)},
+        headers=auth_headers(),
+    )
+    assert resp.status_code == 422

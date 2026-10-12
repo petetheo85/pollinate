@@ -265,6 +265,23 @@ def test_posting_increments_comments_posted_and_updates_last_interaction_at(test
     assert author.last_interaction_at is not None
 
 
+def test_posting_nameless_author_does_not_increment_comments_posted(test_db_session):
+    author = get_or_create_author(test_db_session, "")
+    assert author.key == "unknown"
+    assert author.comments_posted == 0
+    assert author.last_interaction_at is None
+
+    post = Post(url="https://example.com/nameless", raw_text="raw", status=PostStatus.DRAFTED.value, author_id=author.id)
+    test_db_session.add(post)
+    test_db_session.commit()
+
+    transition_post_status(test_db_session, post.id, PostStatus.POSTED, final_comment="Anonymous comment")
+    test_db_session.refresh(author)
+
+    assert author.comments_posted == 0
+    assert author.last_interaction_at is None
+
+
 def test_author_prior_comments_ordering_limit_and_author_isolation(test_db_session):
     author1 = get_or_create_author(test_db_session, "Target Author")
     author2 = get_or_create_author(test_db_session, "Other Author")
