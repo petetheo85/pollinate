@@ -33,10 +33,12 @@ function showTemporaryBadge(text, color, durationMs = 3000) {
 }
 
 chrome.runtime.onInstalled.addListener(() => {
-  chrome.contextMenus.create({
-    id: "pollinate-capture",
-    title: "Capture to Pollinate",
-    contexts: ["selection"],
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: "pollinate-capture",
+      title: "Pollinate",
+      contexts: ["selection"],
+    });
   });
 
   // Enable opening side panel on extension action click
@@ -68,12 +70,11 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         message: "Capture token is not configured. Please open Options and save your token.",
       },
     });
-    chrome.runtime.sendMessage({ type: "DRAFT_ERROR" }).catch(() => {});
     showTemporaryBadge("ERR", "#d9534f", 3000);
     return;
   }
 
-  // Signal loading state in side panel
+  // Signal loading state in side panel via storage
   await chrome.storage.local.set({
     pollinate_state: {
       status: "loading",
@@ -82,7 +83,6 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       page_title: tab?.title || "",
     },
   });
-  chrome.runtime.sendMessage({ type: "DRAFT_LOADING" }).catch(() => {});
 
   const payload = {
     selected_text: selectionText,
@@ -108,7 +108,6 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
           data: data,
         },
       });
-      chrome.runtime.sendMessage({ type: "DRAFT_LOADED", data }).catch(() => {});
 
       if (data.duplicate_warning) {
         showTemporaryBadge("DUP", "#f0ad4e", 3000);
@@ -125,7 +124,6 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
           post_id: errJson.post_id || null,
         },
       });
-      chrome.runtime.sendMessage({ type: "DRAFT_ERROR" }).catch(() => {});
       showTemporaryBadge("ERR", "#d9534f", 3000);
     }
   } catch (error) {
@@ -136,7 +134,6 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         message: message,
       },
     });
-    chrome.runtime.sendMessage({ type: "DRAFT_ERROR" }).catch(() => {});
     showTemporaryBadge("ERR", "#d9534f", 3000);
   }
 });

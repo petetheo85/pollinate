@@ -15,13 +15,45 @@ function getConfig() {
   });
 }
 
+let buzzInterval = null;
+const buzzMessages = [
+  "Scouting post context and active discourse...",
+  "Extracting key nectar and author perspective...",
+  "Filtering synthetic filler from the hive...",
+  "Pollinating drafts with grounded experience...",
+  "Harvesting...",
+];
+let buzzIndex = 0;
+
 function showView(viewId) {
+  if (buzzInterval) {
+    clearInterval(buzzInterval);
+    buzzInterval = null;
+  }
+
   document.querySelectorAll(".view-state").forEach((el) => {
     el.classList.remove("active");
   });
   const target = document.getElementById(viewId);
   if (target) {
     target.classList.add("active");
+  }
+
+  if (viewId === "view-loading") {
+    buzzIndex = 0;
+    const stepEl = document.getElementById("loading-buzz-step");
+    if (stepEl) {
+      stepEl.textContent = buzzMessages[0];
+      buzzInterval = setInterval(() => {
+        if (buzzIndex < buzzMessages.length - 1) {
+          buzzIndex += 1;
+          stepEl.textContent = buzzMessages[buzzIndex];
+        } else {
+          clearInterval(buzzInterval);
+          buzzInterval = null;
+        }
+      }, 2000);
+    }
   }
 }
 
@@ -112,7 +144,7 @@ document.getElementById("btn-copy").addEventListener("click", async () => {
   await navigator.clipboard.writeText(text);
   const copyBtn = document.getElementById("btn-copy");
   const origText = copyBtn.textContent;
-  copyBtn.textContent = "✓ Copied!";
+  copyBtn.textContent = "Copied";
   copyBtn.style.backgroundColor = "var(--success)";
   copyBtn.style.color = "#fff";
 
@@ -146,12 +178,12 @@ document.getElementById("btn-mark-posted").addEventListener("click", async () =>
     });
 
     if (response.ok) {
-      markBtn.textContent = "✓ Saved to History";
+      markBtn.textContent = "Saved to History";
       await chrome.storage.local.set({ pollinate_state: { status: "idle" } });
       setTimeout(() => {
         showView("view-idle");
         markBtn.disabled = false;
-        markBtn.textContent = "✓ Mark as Posted";
+        markBtn.textContent = "Mark as Posted";
       }, 1500);
     } else {
       markBtn.disabled = false;
@@ -163,8 +195,7 @@ document.getElementById("btn-mark-posted").addEventListener("click", async () =>
   }
 });
 
-// Regenerate drafts
-document.getElementById("btn-regenerate").addEventListener("click", async () => {
+async function executeRegenerate(guidance = "") {
   if (!currentPostData) return;
   const { port, token } = await getConfig();
   showView("view-loading");
@@ -173,12 +204,16 @@ document.getElementById("btn-regenerate").addEventListener("click", async () => 
     const response = await fetch(`http://127.0.0.1:${port}/posts/${currentPostData.post_id}/regenerate`, {
       method: "POST",
       headers: {
+        "Content-Type": "application/json",
         "X-Capture-Token": token,
       },
+      body: JSON.stringify(guidance ? { guidance } : {}),
     });
 
     if (response.ok) {
       const data = await response.json();
+      const guidanceInput = document.getElementById("regen-guidance-input");
+      if (guidanceInput) guidanceInput.value = "";
       await chrome.storage.local.set({ pollinate_state: { status: "ready", data } });
       renderPost(data);
     } else {
@@ -188,25 +223,22 @@ document.getElementById("btn-regenerate").addEventListener("click", async () => 
   } catch (err) {
     showError("Could not connect to Pollinate server.");
   }
+}
+
+// Regenerate with custom guidance
+document.getElementById("btn-regenerate").addEventListener("click", () => {
+  const guidanceInput = document.getElementById("regen-guidance-input");
+  const guidance = guidanceInput ? guidanceInput.value.trim() : "";
+  executeRegenerate(guidance);
 });
 
-// Skip post
-document.getElementById("btn-skip").addEventListener("click", async () => {
-  if (!currentPostData) return;
-  const { port, token } = await getConfig();
-
-  try {
-    await fetch(`http://127.0.0.1:${port}/posts/${currentPostData.post_id}/skip`, {
-      method: "POST",
-      headers: {
-        "X-Capture-Token": token,
-      },
-    });
-  } catch (_) {}
-
-  await chrome.storage.local.set({ pollinate_state: { status: "idle" } });
-  showView("view-idle");
-});
+// Simplify drafts
+const simplifyBtn = document.getElementById("btn-simplify");
+if (simplifyBtn) {
+  simplifyBtn.addEventListener("click", () => {
+    executeRegenerate("Make these drafts simpler, punchier, down-to-earth, and conversational. Cut elevated vocabulary and stiff phrasing.");
+  });
+}
 
 function showError(msg) {
   document.getElementById("error-message").textContent = msg;

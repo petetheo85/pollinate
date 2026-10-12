@@ -13,8 +13,16 @@ import config
 from config import BIND_HOST, CAPTURE_PORT, MAX_SELECTION_CHARS, validate_settings
 from db import InvalidStatusTransitionError, get_engine, init_db, transition_post_status
 from llm import LLMError
-from models import DraftRequest, DraftResponse, Post, PostPostedRequest, PostStatus
-from services import generate_inline_drafts
+from models import (
+    DraftRequest,
+    DraftResponse,
+    Post,
+    PostPostedRequest,
+    PostStatus,
+    ProfilePayload,
+    RegenerateRequest,
+)
+from services import generate_inline_drafts, load_profile, save_profile
 
 
 @asynccontextmanager
@@ -123,6 +131,7 @@ def draft_post(
 @app.post("/posts/{post_id}/regenerate", response_model=DraftResponse, dependencies=[Depends(verify_capture_token)])
 def regenerate_post(
     post_id: int,
+    req: Optional[RegenerateRequest] = None,
     session: Session = Depends(get_db_session),
 ):
     """Regenerates drafts for an existing post synchronously in threadpool."""
@@ -140,7 +149,8 @@ def regenerate_post(
         )
 
     try:
-        return generate_inline_drafts(post.id, session)
+        guidance = req.guidance if req else None
+        return generate_inline_drafts(post.id, session, guidance=guidance)
     except LLMError as exc:
         return JSONResponse(
             status_code=status.HTTP_502_BAD_GATEWAY,
@@ -151,6 +161,19 @@ def regenerate_post(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"detail": "Internal server error", "post_id": post.id},
         )
+
+
+@app.get("/profile", response_model=ProfilePayload, dependencies=[Depends(verify_capture_token)])
+def get_user_profile():
+    """Returns current user background profile markdown."""
+    return ProfilePayload(content=load_profile())
+
+
+@app.put("/profile", response_model=ProfilePayload, dependencies=[Depends(verify_capture_token)])
+def update_user_profile(payload: ProfilePayload):
+    """Saves updated user background profile markdown."""
+    save_profile(payload.content)
+    return ProfilePayload(content=load_profile())
 
 
 @app.post("/posts/{post_id}/skip", dependencies=[Depends(verify_capture_token)])

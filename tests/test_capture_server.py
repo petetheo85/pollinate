@@ -1,6 +1,7 @@
 """Tests for capture_server HTTP endpoints, authentication, and error handling."""
 
 import inspect
+from typing import Optional
 
 import pytest
 from fastapi.testclient import TestClient
@@ -58,6 +59,8 @@ def test_every_endpoint_returns_401_without_valid_token(server_client):
         ("POST", "/posts/1/regenerate", None),
         ("POST", "/posts/1/skip", None),
         ("POST", "/posts/1/posted", {"final_comment": "great post"}),
+        ("GET", "/profile", None),
+        ("PUT", "/profile", {"content": "test"}),
     ]
 
     for method, path, json_data in endpoints:
@@ -239,7 +242,7 @@ def test_regenerate_replaces_drafts(server_client, monkeypatch):
         session.commit()
 
     # Mock generate_inline_drafts to replace drafts in DB
-    def fake_regenerate(target_id: int, session: Session) -> DraftResponse:
+    def fake_regenerate(target_id: int, session: Session, guidance: Optional[str] = None) -> DraftResponse:
         session.exec(Draft.__table__.delete().where(Draft.post_id == target_id))
         new_db_draft = Draft(
             post_id=target_id,
@@ -283,3 +286,72 @@ def test_llm_calling_endpoints_are_sync_def():
     # FastAPI dispatches sync def endpoints to worker threads, preventing event loop blocking
     assert not inspect.iscoroutinefunction(capture_server.draft_post)
     assert not inspect.iscoroutinefunction(capture_server.regenerate_post)
+
+
+def test_regenerate_passes_guidance(server_client, monkeypatch):
+    client, db_file = server_client
+
+    with Session(get_engine(str(db_file))) as session:
+        post = Post(
+            url="https://linkedin.com/post/guidance-test",
+            raw_text="sample text",
+            status=PostStatus.DRAFTED.value,
+        )
+        session.add(post)
+        session.commit()
+        session.refresh(post)
+        post_id = post.id
+
+    captured_guidance = []
+
+    def fake_regenerate(target_id: int, session: Session, guidance: Optional[str] = None) -> DraftResponse:
+        captured_guidance.append(guidance)
+        return DraftResponse(
+            post_id=target_id,
+            author_name="Alice",
+            author_headline="Dev",
+            post_body="Body",
+            relevance_score=8,
+            opportunity_score=8,
+            one_line_reason="Reason",
+            drafts=[
+                SingleDraft(
+                    angle=DraftAngle.QUESTION,
+                    text="Guided draft",
+                    adds_beyond_existing="Idea",
+                )
+            ],
+        )
+
+    monkeypatch.setattr(capture_server, "generate_inline_drafts", fake_regenerate)
+
+    resp = client.post(
+        f"/posts/{post_id}/regenerate",
+        json={"guidance": "Focus on memory footprint"},
+        headers=auth_headers(),
+    )
+    assert resp.status_code == 200
+    assert captured_guidance == ["Focus on memory footprint"]
+
+
+def test_get_and_update_profile(server_client, tmp_path, monkeypatch):
+    client, _ = server_client
+    test_profile_path = tmp_path / "test_profile.md"
+    test_profile_path.write_text("# Initial Profile", encoding="utf-8")
+    monkeypatch.setattr(config, "PROFILE_PATH", test_profile_path)
+    monkeypatch.setattr("services.PROFILE_PATH", test_profile_path)
+
+    # GET profile
+    resp = client.get("/profile", headers=auth_headers())
+    assert resp.status_code == 200
+    assert resp.json()["content"] == "# Initial Profile"
+
+    # PUT profile
+    resp_put = client.put(
+        "/profile",
+        json={"content": "# Updated Profile\n- Focus: AI Systems"},
+        headers=auth_headers(),
+    )
+    assert resp_put.status_code == 200
+    assert "Focus: AI Systems" in resp_put.json()["content"]
+    assert test_profile_path.read_text(encoding="utf-8") == "# Updated Profile\n- Focus: AI Systems"

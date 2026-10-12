@@ -187,6 +187,14 @@ class PostPostedRequest(BaseModel):
     final_comment: str
 
 
+class RegenerateRequest(BaseModel):
+    guidance: Optional[str] = None
+
+
+class ProfilePayload(BaseModel):
+    content: str
+
+
 class DraftResponse(BaseModel):
     post_id: int
     author_name: str

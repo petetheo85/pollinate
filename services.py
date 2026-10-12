@@ -43,7 +43,17 @@ def load_profile() -> str:
     return ""
 
 
-def generate_inline_drafts(post_id: int, session: Session) -> DraftResponse:
+def save_profile(content: str) -> None:
+    """Writes profile markdown to PROFILE_PATH, creating parent directories if needed."""
+    PROFILE_PATH.parent.mkdir(parents=True, exist_ok=True)
+    PROFILE_PATH.write_text(content, encoding="utf-8")
+
+
+def generate_inline_drafts(
+    post_id: int,
+    session: Session,
+    guidance: Optional[str] = None,
+) -> DraftResponse:
     """Extracts post metadata, scores opportunity, and generates 3 grounded comment drafts."""
     post = session.get(Post, post_id)
     if not post:
@@ -60,6 +70,7 @@ def generate_inline_drafts(post_id: int, session: Session) -> DraftResponse:
             page_title=post.page_title or "",
             profile=profile,
             prior_comments=None,
+            guidance=guidance,
         )
         result = analyze_and_draft_post(prompt)
 
@@ -114,6 +125,7 @@ def generate_inline_drafts(post_id: int, session: Session) -> DraftResponse:
                         page_title=post.page_title or "",
                         profile=profile,
                         prior_comments=priors,
+                        guidance=guidance,
                     )
                     result = analyze_and_draft_post(repeat_prompt)
 

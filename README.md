@@ -1,53 +1,116 @@
 # Pollinate
 
-Pollinate is a local workflow tool for engaging thoughtfully with LinkedIn posts in the AI engineering space (clip → review → copy & post manually).
+Pollinate is a local-first workflow tool for drafting grounded, authentic responses to LinkedIn posts. It combines a Chrome Side Panel extension with a local Python backend and Gemini inference.
 
-## Design & Constraints
+## Architecture & Design Decisions
 
-Pollinate is intentionally designed with strict constraints:
-- **No browser automation:** No Selenium, Playwright, Puppeteer, or automated form filling. No interaction with LinkedIn's DOM or internal APIs.
-- **User-triggered, selection-only:** Every capture happens solely when you highlight text on a post and explicitly click the browser extension menu.
-- **Manual posting step:** Approved comments are copied to your clipboard and opened in a tab for you to paste and post yourself.
-- **Why?** Grounded human judgment matters. Automation risks spam, account bans, and hallucinated comments. Pollinate handles the cognitive load of drafting and tracking while keeping you entirely in control.
+- **Zero DOM Scraping or Injection**: The extension contains no content scripts, no hover overlays, and no automated DOM interaction with `linkedin.com`. This eliminates bot-detection risks and prevents account flags.
+- **User-Initiated Selection Only**: Captures happen only when the user explicitly highlights post text and comments, right-clicks, and selects "Pollinate" (or presses `Alt+Shift+P`).
+- **Local-Only Boundary**: Extension host permissions are strictly locked to `http://127.0.0.1/*`. The backend server binds solely to `127.0.0.1` and authenticates requests using a bearer token verified via constant-time comparison (`hmac.compare_digest`).
+- **Single Source of Truth**: User profile, expertise, tone, and length constraints live in `context/profile.md`. Both the LLM prompt engine and the extension Options page read and write this file directly.
+- **Manual Posting**: Pollinate handles analysis and response drafting. Copying and posting to LinkedIn remains an intentional, manual user action.
 
 ---
 
-## Configuration
+## Setup
 
-Settings follow strict engineering principles:
-1. **Single Reader:** Only `config.py` touches the environment. All other modules import from `config`.
-2. **Precedence:** Real process environment variables override `.env`, which overrides defaults in `config.py`.
-3. **No Drift:** Non-secret tuning constants (weights, retry limits, thresholds, SQLite timeouts) live directly in `config.py` rather than `.env`.
-4. **Shared Database Path:** Relative database paths resolve against the project root (`PROJECT_ROOT`), ensuring both the capture server and Streamlit app always share the exact same SQLite database.
+### 1. Backend Environment
 
-### Supported Provider
+Clone the repository and install dependencies in a virtual environment:
 
-The application currently supports Gemini via Google's SDK (`google-genai`).
-* `LLM_API_KEY`: A Google AI API key.
-* `MODEL_NAME`: Must be a model supported by the Gemini API. Refer to the [Gemini models documentation](https://ai.google.dev/gemini-api/docs/models).
-* Other providers are not supported yet.
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 
-### Environment Variables
+### 2. Configuration
 
 Copy `.env.example` to `.env`:
+
 ```bash
 cp .env.example .env
 ```
 
-| Variable | Required | Description |
-|---|---|---|
-| `LLM_API_KEY` | Yes | Google AI API key for Gemini. |
-| `MODEL_NAME` | Yes | Model identifier supported by the Gemini API. |
-| `CAPTURE_TOKEN` | Yes | Bearer token authenticating capture requests. Generate below. |
-| `CAPTURE_PORT` | Optional | Local port for FastAPI capture server (default: `8765`). |
-| `DB_PATH` | Optional | SQLite database path (default: `pollinate.db`, resolved to project root). |
+Generate a secure bearer token:
 
-### Generating the Capture Token
-
-Generate a secure 32-byte token with Python:
 ```bash
 python3 -c "import secrets; print(secrets.token_urlsafe(32))"
 ```
-Paste this value into `.env` as `CAPTURE_TOKEN`.
 
-> **Important:** The browser extension runs inside Chrome and cannot read `.env`. You must enter the exact same `CAPTURE_PORT` and `CAPTURE_TOKEN` into the extension Options page. If the extension badge shows an exclamation mark (`!`), a port or token mismatch is the first thing to check.
+Configure `.env`:
+
+```ini
+LLM_API_KEY=your_gemini_api_key
+MODEL_NAME=gemini-3.8-flash
+CAPTURE_TOKEN=your_generated_bearer_token
+CAPTURE_PORT=8765
+```
+
+### 3. Profile Setup
+
+Inspect or edit `context/profile.md` to define your identity, technical stack, voice preferences, and length constraints. You can also edit this directly from the extension Options page.
+
+### 4. Start Capture Server
+
+Run the local FastAPI server:
+
+```bash
+.venv/bin/python capture_server.py
+```
+
+The server initializes SQLite in WAL mode (`pollinate.db`) and listens on `http://127.0.0.1:8765`.
+
+### 5. Install Chrome Extension
+
+1. Open `chrome://extensions` in Google Chrome.
+2. Enable **Developer mode** (top right toggle).
+3. Click **Load unpacked** and select the `extension/` directory.
+4. On first load, open extension Options (click the extension icon or navigate to its details):
+   - In the **Server** tab, confirm the port (`8765`) and paste your `CAPTURE_TOKEN`.
+   - Click **Test Connection** to verify server connectivity.
+   - Switch to the **Options** tab to review or edit your profile and voice presets.
+
+---
+
+## Usage Workflow
+
+1. **Highlight Post**: On LinkedIn, select the text of a post along with any visible comments you want considered for context.
+2. **Trigger Pollinate**: Right-click the selection and choose **Pollinate** (or use the shortcut `Alt+Shift+P`).
+3. **Review Analysis & Drafts**: The Chrome Side Panel opens with:
+   - Author metadata, topic tags, and constructive relevance rationale.
+   - Relevance and Opportunity scores (1–10).
+   - Duplicate warning if you have already commented on this post.
+   - Three distinct draft perspectives:
+     - **Experience**: Practitioner observation grounded in your profile facts.
+     - **Question**: Technical or strategic question advancing implementation.
+     - **Counterpoint**: Polite, constructive alternative perspective or boundary condition.
+4. **Refine**:
+   - Edit any draft directly in the textarea.
+   - Click **Simplify** to rewrite the drafts in punchier, down-to-earth language.
+   - Enter custom steering guidance (e.g., *"Focus on latency trade-offs"*) and click **Regenerate**.
+5. **Post & Track**:
+   - Click **Copy to Clipboard**, paste into LinkedIn, and post manually.
+   - Click **Mark as Posted** in the side panel to save your final comment and timestamp to history.
+
+---
+
+## Configuration Reference
+
+| Variable | Required | Default | Description |
+|---|---|---|---|
+| `LLM_API_KEY` | Yes | — | Google AI API key for Gemini. |
+| `MODEL_NAME` | Yes | `gemini-3.8-flash` | Gemini model identifier. |
+| `CAPTURE_TOKEN` | Yes | — | Bearer token authenticating extension requests (minimum 24 characters). |
+| `CAPTURE_PORT` | No | `8765` | Local port for the FastAPI server. |
+| `DB_PATH` | No | `pollinate.db` | Path to SQLite database, resolved against project root. |
+
+---
+
+## Testing
+
+Run the test suite (excluding external network tests):
+
+```bash
+PYTHONPATH=. pytest -m "not integration"
+```

@@ -8,11 +8,15 @@
     :root {
       --bg: #121417;
       --card-bg: #1c2025;
+      --card-subtle: #242930;
+      --card-subtle-hover: #2b323c;
       --border: #2e343d;
       --text: #e6edf3;
       --text-muted: #8b949e;
-      --accent: #e5a93c;
-      --accent-hover: #d29629;
+      --accent: #f59e0b;
+      --accent-hover: #d97706;
+      --accent-soft: rgba(245, 158, 11, 0.12);
+      --accent-soft-border: rgba(245, 158, 11, 0.35);
       --btn-secondary: #29303a;
       --btn-secondary-hover: #37404e;
       --success: #3fb950;
@@ -31,9 +35,9 @@
       color: var(--text);
       display: flex;
       justify-content: center;
-      align-items: center;
+      align-items: flex-start;
       min-height: 100vh;
-      padding: 24px;
+      padding: 32px 16px;
     }
 
     .card {
@@ -42,10 +46,11 @@
       border-radius: 12px;
       padding: 28px;
       width: 100%;
-      max-width: 420px;
+      max-width: 640px;
       box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
     }
 
+    /* Top Brand Header */
     .header {
       display: flex;
       align-items: center;
@@ -57,7 +62,7 @@
       width: 28px;
       height: 28px;
       border-radius: 50%;
-      background: radial-gradient(circle, #fde68a 0%, #d97706 100%);
+      background: url('icons/icon48.png') no-repeat center / contain;
     }
 
     h1 {
@@ -66,48 +71,184 @@
       letter-spacing: -0.01em;
     }
 
-    .subtitle {
-      font-size: 13px;
-      color: var(--text-muted);
+    /* Tab Navigation */
+    .tabs-nav {
+      display: flex;
+      gap: 8px;
+      border-bottom: 1px solid var(--border);
       margin-bottom: 24px;
-      line-height: 1.4;
+      padding-bottom: 2px;
     }
 
-    .form-group {
-      margin-bottom: 18px;
-    }
-
-    label {
-      display: block;
+    .tab-nav-btn {
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-muted);
       font-size: 13px;
-      font-weight: 500;
-      margin-bottom: 6px;
+      font-weight: 600;
+      padding: 8px 14px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+      margin-bottom: -2px;
+    }
+
+    .tab-nav-btn:hover {
       color: var(--text);
     }
 
-    input {
+    .tab-nav-btn.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    /* Tab Content Panes */
+    .tab-pane {
+      display: none;
+    }
+
+    .tab-pane.active {
+      display: block;
+    }
+
+    /* Title Stack */
+    .title-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 6px;
+    }
+
+    .title-stack h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .profile-file-tag {
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 11px;
+      color: var(--accent);
+      background-color: var(--accent-soft);
+      border: 1px solid var(--accent-soft-border);
+      padding: 2px 8px;
+      border-radius: 4px;
+      display: inline-block;
+      width: fit-content;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+      line-height: 1.4;
+    }
+
+    /* Form Elements */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    label.field-label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+    }
+
+    input[type="text"], input[type="password"], input[type="number"], textarea {
       width: 100%;
       padding: 10px 12px;
       background-color: #0d1117;
       border: 1px solid var(--border);
       border-radius: 6px;
       color: var(--text);
-      font-size: 14px;
+      font-size: 13px;
+      font-family: inherit;
       outline: none;
       transition: border-color 0.15s ease;
     }
 
-    input:focus {
+    textarea.profile-editor {
+      min-height: 240px;
+      font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.5;
+      resize: vertical;
+    }
+
+    input:focus, textarea:focus {
       border-color: var(--accent);
     }
 
+    /* Stacked Radio Groups */
+    .radio-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 20px;
+    }
+
+    .radio-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 14px;
+      background-color: var(--card-subtle);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+
+    .radio-card:hover {
+      border-color: rgba(245, 158, 11, 0.4);
+      background-color: var(--card-subtle-hover);
+    }
+
+    .radio-card.selected {
+      border-color: var(--accent);
+      background-color: var(--accent-soft);
+    }
+
+    .radio-card input[type="radio"] {
+      margin-top: 3px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .radio-card-content {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .radio-card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .radio-card-desc {
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    /* Buttons */
     .button-row {
       display: flex;
       gap: 10px;
-      margin-top: 24px;
+      margin-top: 18px;
     }
 
-    button {
+    button.btn {
       flex: 1;
       padding: 10px 14px;
       border-radius: 6px;
@@ -116,6 +257,10 @@
       cursor: pointer;
       border: none;
       transition: background-color 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
     }
 
     .btn-primary {
@@ -137,8 +282,9 @@
       background-color: var(--btn-secondary-hover);
     }
 
-    #status-banner {
-      margin-top: 16px;
+    /* Status Banners */
+    .status-banner {
+      margin-top: 14px;
       padding: 10px 12px;
       border-radius: 6px;
       font-size: 13px;
@@ -146,14 +292,14 @@
       line-height: 1.4;
     }
 
-    #status-banner.success {
+    .status-banner.success {
       display: block;
       background-color: rgba(63, 185, 80, 0.15);
       border: 1px solid rgba(63, 185, 80, 0.4);
       color: var(--success);
     }
 
-    #status-banner.error {
+    .status-banner.error {
       display: block;
       background-color: rgba(248, 81, 73, 0.15);
       border: 1px solid rgba(248, 81, 73, 0.4);
@@ -163,30 +309,124 @@
 </head>
 <body>
   <div class="card">
+    <!-- Header -->
     <div class="header">
       <div class="logo"></div>
       <h1>Pollinate Settings</h1>
     </div>
-    <p class="subtitle">Configure connection to your local Pollinate server on 127.0.0.1.</p>
 
-    <form id="settings-form">
-      <div class="form-group">
-        <label for="server-port">Server Port</label>
-        <input type="number" id="server-port" min="1" max="65535" value="8765" required>
+    <!-- Tab Navigation -->
+    <nav class="tabs-nav">
+      <button class="tab-nav-btn active" data-tab="tab-options">Options</button>
+      <button class="tab-nav-btn" data-tab="tab-server">Server</button>
+    </nav>
+
+    <!-- Tab 1: Options -->
+    <div id="tab-options" class="tab-pane active">
+      <div class="title-stack">
+        <h2>User Profile & Voice</h2>
+        <span class="profile-file-tag">context/profile.md</span>
+      </div>
+      <p class="subtitle">Customizes your background expertise, personality, tone, and draft length preferences used by the model during drafting.</p>
+
+      <!-- Personality Presets (Stacked Radio Column) -->
+      <label class="field-label">Personality Preset</label>
+      <div class="radio-group" id="personality-radio-group">
+        <label class="radio-card selected">
+          <input type="radio" name="personality-preset" value="Intelligent, thoughtful, pragmatic, grounded, analytical, candid, mission-oriented." checked>
+          <div class="radio-card-content">
+            <span class="radio-card-title">Intelligent & Pragmatic</span>
+            <span class="radio-card-desc">Thoughtful, grounded, analytical, candid, mission-oriented.</span>
+          </div>
+        </label>
+        <label class="radio-card">
+          <input type="radio" name="personality-preset" value="Comical, witty, lighthearted, clever, conversational.">
+          <div class="radio-card-content">
+            <span class="radio-card-title">Comical & Witty</span>
+            <span class="radio-card-desc">Humorous, clever, conversational, lighthearted.</span>
+          </div>
+        </label>
+        <label class="radio-card">
+          <input type="radio" name="personality-preset" value="Sarcastic, wry, contrarian, playful dry humor.">
+          <div class="radio-card-content">
+            <span class="radio-card-title">Sarcastic & Wry</span>
+            <span class="radio-card-desc">Playful contrarian, dry humor, challenges performative hype.</span>
+          </div>
+        </label>
+        <label class="radio-card">
+          <input type="radio" name="personality-preset" value="Candid, direct, no-nonsense, pragmatic engineering reality.">
+          <div class="radio-card-content">
+            <span class="radio-card-title">Candid & Direct</span>
+            <span class="radio-card-desc">No-nonsense, blunt engineering reality, cuts straight to the point.</span>
+          </div>
+        </label>
       </div>
 
-      <div class="form-group">
-        <label for="capture-token">Capture Bearer Token</label>
-        <input type="password" id="capture-token" placeholder="Paste your CAPTURE_TOKEN" required>
+      <!-- Length Presets (Stacked Radio Column) -->
+      <label class="field-label">Draft Length Preset</label>
+      <div class="radio-group" id="length-radio-group">
+        <label class="radio-card">
+          <input type="radio" name="length-preset" value="1 to 2 concise, high-signal sentences (never exceeding 3). Every comment must contribute a concrete observation, hard operational boundary, or probing technical question.">
+          <div class="radio-card-content">
+            <span class="radio-card-title">Concise (1–2 sentences)</span>
+            <span class="radio-card-desc">Punchy, high-signal, never exceeding 3 sentences.</span>
+          </div>
+        </label>
+        <label class="radio-card selected">
+          <input type="radio" name="length-preset" value="2 to 3 concise, high-signal sentences (never exceeding 4). Every comment must contribute a concrete observation, hard operational boundary, or probing technical question." checked>
+          <div class="radio-card-content">
+            <span class="radio-card-title">Balanced (2–3 sentences)</span>
+            <span class="radio-card-desc">Standard balanced length, never exceeding 4 sentences.</span>
+          </div>
+        </label>
+        <label class="radio-card">
+          <input type="radio" name="length-preset" value="3 to 5 detailed, structured sentences. Every comment must contribute a concrete observation, hard operational boundary, or probing technical question.">
+          <div class="radio-card-content">
+            <span class="radio-card-title">Deep Dive (3–5 sentences)</span>
+            <span class="radio-card-desc">Detailed technical analysis and nuance.</span>
+          </div>
+        </label>
       </div>
 
-      <div class="button-row">
-        <button type="submit" class="btn-primary" id="save-button">Save</button>
-        <button type="button" class="btn-secondary" id="test-button">Test Connection</button>
-      </div>
-    </form>
+      <!-- Profile Markdown Editor -->
+      <form id="profile-form">
+        <div class="form-group">
+          <label for="profile-content" class="field-label">Profile Markdown (Direct Editor)</label>
+          <textarea id="profile-content" class="profile-editor" placeholder="Loading profile from context/profile.md..."></textarea>
+        </div>
+        <div class="button-row">
+          <button type="submit" class="btn btn-primary" id="save-profile-btn">Save Profile to Disk</button>
+          <button type="button" class="btn btn-secondary" id="reload-profile-btn">Reload from Disk</button>
+        </div>
+      </form>
+      <div id="profile-status-banner" class="status-banner"></div>
+    </div>
 
-    <div id="status-banner"></div>
+    <!-- Tab 2: Server -->
+    <div id="tab-server" class="tab-pane">
+      <div class="title-stack">
+        <h2>Server Connection</h2>
+      </div>
+      <p class="subtitle">Configure connection to your local Pollinate server on 127.0.0.1.</p>
+
+      <form id="settings-form">
+        <div class="form-group">
+          <label for="server-port" class="field-label">Server Port</label>
+          <input type="number" id="server-port" min="1" max="65535" value="8765" required>
+        </div>
+
+        <div class="form-group">
+          <label for="capture-token" class="field-label">Capture Bearer Token</label>
+          <input type="password" id="capture-token" placeholder="Paste your CAPTURE_TOKEN" required>
+        </div>
+
+        <div class="button-row">
+          <button type="submit" class="btn btn-primary" id="save-button">Save Connection</button>
+          <button type="button" class="btn btn-secondary" id="test-button">Test Connection</button>
+        </div>
+      </form>
+      <div id="status-banner" class="status-banner"></div>
+    </div>
   </div>
 
   <script src="options.js"></script>

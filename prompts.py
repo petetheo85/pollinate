@@ -12,6 +12,12 @@ BANNED_PHRASES = [
     "Spot on",
     "Love this",
     "Well said",
+    "We've had to implement",
+    "We had to implement",
+    "We've seen a trend",
+    "We are seeing a trend",
+    "At our company",
+    "In my last project",
 ]
 
 INLINE_ANALYSIS_PROMPT = """You are an assistant evaluating LinkedIn posts and drafting high-signal, authentic comments.
@@ -27,6 +33,7 @@ Raw Selected Content:
 {selection}
 === END SELECTION ===
 {prior_comments_section}
+{guidance_section}
 
 # Instructions
 1. Extract the post author's name and headline/company. Clean extraneous degree markers ('1st', '2nd') and emoji.
@@ -35,16 +42,19 @@ Raw Selected Content:
 4. Score the post:
    - relevance_score (1-10): Alignment with user's background.
    - opportunity_score (1-10): Strategic value for professional conversation.
-   - one_line_reason: Single-sentence rationale.
+   - one_line_reason: Constructive, single-sentence explanation of why this post is relevant to engage with (e.g., "This post is relevant because...").
    - topic_tags: 1-3 concise keywords.
 5. Generate 3 comments with distinct angles:
-   - 'experience': Concrete observation or lesson learned grounded in the user's profile.
-   - 'question': Substantive question advancing the technical or strategic debate.
-   - 'counterpoint': Constructive, polite alternative viewpoint or boundary condition.
-   For each comment:
+   - 'experience': Concrete practical observation or engineering perspective grounded strictly in the user's profile.
+   - 'question': Direct, sharp question advancing practical implementation or trade-offs.
+   - 'counterpoint': Constructive alternative viewpoint highlighting operational reality or hidden trade-offs.
+   Tone & Anti-Fabrication Invariants:
+   - ZERO FABRICATION: Never invent fake personal anecdotes, fabricated company stories, or imaginary projects. Never claim "We had to implement...", "At our company...", "In our team...", or "We've seen a trend...". Anchor comments in verifiable technical principles, architecture realities, and first-principles trade-offs.
+   - Write like an active practitioner talking with an engineering colleague over coffee, NOT an academic paper, consultant memo, or keynote speech.
+   - Plainspoken, punchy, and grounded. Avoid academic vocabulary, high-level abstract theorizing, or stiff formal syntax.
    - Explain in adds_beyond_existing what specific point is contributed that is not in existing_comment_points or prior comments.
-   - Avoid generic openers: {banned_phrases}.
-   - Keep comments 2-4 sentences, direct and natural.
+   - Avoid generic openers and fabricated phrasing: {banned_phrases}.
+   - Keep comments 2-3 sentences, direct and natural.
 """
 
 
@@ -59,19 +69,32 @@ def build_prior_comments_section(prior_comments: Optional[List[str]]) -> str:
     )
 
 
+def build_guidance_section(guidance: Optional[str]) -> str:
+    if not guidance or not guidance.strip():
+        return ""
+    return (
+        "\n# User Steering Guidance\n"
+        "Incorporate this specific guidance into the drafted comments:\n"
+        f"{guidance.strip()}\n"
+    )
+
+
 def format_inline_prompt(
     selection: str,
     url: str,
     page_title: str,
     profile: str,
     prior_comments: Optional[List[str]] = None,
+    guidance: Optional[str] = None,
 ) -> str:
     prior_section = build_prior_comments_section(prior_comments)
+    guidance_section = build_guidance_section(guidance)
     return INLINE_ANALYSIS_PROMPT.format(
         profile=profile.strip() if profile else "No profile provided.",
         url=url or "N/A",
         page_title=page_title or "N/A",
         selection=selection,
         prior_comments_section=prior_section,
+        guidance_section=guidance_section,
         banned_phrases=", ".join(f'"{p}"' for p in BANNED_PHRASES),
     )

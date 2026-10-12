@@ -64,7 +64,7 @@
       width: 22px;
       height: 22px;
       border-radius: 50%;
-      background: radial-gradient(circle, #fde68a 0%, #d97706 100%);
+      background: url('icons/icon48.png') no-repeat center / contain;
     }
 
     .brand-title {
@@ -136,27 +136,97 @@
       gap: 16px;
     }
 
-    .spinner {
-      width: 32px;
-      height: 32px;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
+    /* Bee & Pollen Animation */
+    .hive-scene {
+      position: relative;
+      width: 140px;
+      height: 80px;
+      margin: 0 auto 4px;
     }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
+    .bee-actor {
+      position: absolute;
+      font-size: 26px;
+      user-select: none;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+    }
+
+    .bee-1 {
+      top: 25px;
+      left: 15px;
+      animation: beeHover1 2.4s ease-in-out infinite alternate;
+    }
+
+    .bee-2 {
+      top: 15px;
+      right: 15px;
+      animation: beeHover2 2.7s ease-in-out infinite alternate;
+    }
+
+    @keyframes beeHover1 {
+      0% { transform: translate(0, 0) rotate(-6deg); }
+      50% { transform: translate(30px, -14px) rotate(10deg); }
+      100% { transform: translate(55px, 8px) rotate(-4deg); }
+    }
+
+    @keyframes beeHover2 {
+      0% { transform: translate(0, 0) scaleX(-1) rotate(6deg); }
+      50% { transform: translate(-25px, 16px) scaleX(-1) rotate(-8deg); }
+      100% { transform: translate(-50px, -6px) scaleX(-1) rotate(4deg); }
+    }
+
+    .pollen-field {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .pollen {
+      position: absolute;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fef08a 20%, #f59e0b 90%);
+      box-shadow: 0 0 6px rgba(245, 158, 11, 0.8);
+    }
+
+    .p1 { width: 6px; height: 6px; top: 35px; left: 35px; animation: pollenDrift 1.8s ease-in-out infinite; }
+    .p2 { width: 5px; height: 5px; top: 50px; left: 70px; animation: pollenDrift 2.3s ease-in-out infinite 0.4s; }
+    .p3 { width: 7px; height: 7px; top: 20px; left: 95px; animation: pollenDrift 1.9s ease-in-out infinite 0.8s; }
+    .p4 { width: 4px; height: 4px; top: 60px; left: 25px; animation: pollenDrift 2.1s ease-in-out infinite 0.2s; }
+    .p5 { width: 5px; height: 5px; top: 40px; left: 110px; animation: pollenDrift 2.5s ease-in-out infinite 0.6s; }
+
+    @keyframes pollenDrift {
+      0% { transform: translateY(0) scale(0.6); opacity: 0.2; }
+      50% { transform: translateY(-16px) scale(1.1); opacity: 0.95; }
+      100% { transform: translateY(-32px) scale(0.5); opacity: 0; }
     }
 
     .loading-title {
       font-size: 14px;
       font-weight: 600;
+      color: var(--accent);
     }
 
     .loading-desc {
       font-size: 12px;
       color: var(--text-muted);
+    }
+
+    .guidance-input {
+      width: 100%;
+      padding: 8px 10px;
+      background-color: #0b0e14;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 12px;
+      margin-bottom: 8px;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    .guidance-input:focus {
+      border-color: var(--accent);
     }
 
     /* Error View */
@@ -368,14 +438,37 @@
       background-color: var(--error-soft);
     }
 
-    /* Footer actions */
-    .footer-actions {
+    /* Refine & Regenerate Card */
+    .refine-card {
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .card-section-title {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--text-muted);
+    }
+
+    .refine-actions {
+      display: flex;
       gap: 8px;
-      margin-top: 16px;
-      padding-top: 14px;
-      border-top: 1px solid var(--border);
+    }
+
+    .btn-secondary-accent {
+      background-color: var(--card-subtle);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: var(--accent);
+      flex: 1.5;
+    }
+
+    .btn-secondary-accent:hover {
+      background-color: var(--accent-soft);
+      border-color: var(--accent);
+      color: var(--accent);
     }
   </style>
 </head>
@@ -386,7 +479,12 @@
       <div class="brand-icon"></div>
       <span class="brand-title">Pollinate</span>
     </div>
-    <button id="open-settings" class="settings-btn" title="Options">⚙️</button>
+    <button id="open-settings" class="settings-btn" title="Options">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"></circle>
+        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+      </svg>
+    </button>
   </div>
 
   <!-- Idle State -->
@@ -394,15 +492,25 @@
     <div class="idle-icon">🐝</div>
     <div class="idle-title">Ready to Pollinate</div>
     <div class="idle-desc">
-      Highlight a LinkedIn post and visible comments, right-click, and select <strong>"Capture to Pollinate"</strong>.
+      Highlight a LinkedIn post and visible comments, right-click, and select <strong>"Pollinate"</strong>.
     </div>
   </div>
 
   <!-- Loading State -->
   <div id="view-loading" class="view-state">
-    <div class="spinner"></div>
-    <div class="loading-title">Drafting Responses...</div>
-    <div class="loading-desc">Extracting themes and generating 3 distinct perspectives.</div>
+    <div class="hive-scene">
+      <div class="pollen-field">
+        <span class="pollen p1"></span>
+        <span class="pollen p2"></span>
+        <span class="pollen p3"></span>
+        <span class="pollen p4"></span>
+        <span class="pollen p5"></span>
+      </div>
+      <div class="bee-actor bee-1">🐝</div>
+      <div class="bee-actor bee-2">🐝</div>
+    </div>
+    <div class="loading-title">🐝 Bees are buzzing... <em>*buzz buzz buzz*</em></div>
+    <div id="loading-buzz-step" class="loading-desc">Harvesting...</div>
   </div>
 
   <!-- Error State -->
@@ -416,34 +524,38 @@
     <!-- Duplicate Warning Banner -->
     <div id="duplicate-banner" class="banner warning"></div>
 
-    <!-- Post Metadata Card -->
+    <!-- Card 1: Post Metadata -->
     <div class="card">
       <div id="post-author" class="author-name"></div>
       <div id="post-headline" class="author-headline"></div>
       <div class="score-pills">
-        <span id="pill-relevance" class="pill pill-accent"></span>
-        <span id="pill-opportunity" class="pill pill-success"></span>
-        <span id="pill-interaction" class="pill" style="display: none;"></span>
+        <span id="pill-relevance" class="pill pill-accent" title="Relevance (1-10): Alignment between this post and your expertise in context/profile.md"></span>
+        <span id="pill-opportunity" class="pill pill-success" title="Opportunity (1-10): Strategic value for thoughtful conversation and engagement"></span>
+        <span id="pill-interaction" class="pill" style="display: none;" title="Prior interactions with this author"></span>
       </div>
       <div id="post-reason" class="reason-box"></div>
     </div>
 
-    <!-- Drafts Card -->
+    <!-- Card 2: Drafts -->
     <div class="card" style="flex: 1; display: flex; flex-direction: column;">
       <div class="tabs-header" id="tabs-container"></div>
       <div class="draft-insight" id="draft-insight"></div>
       <textarea id="draft-text" class="draft-editor"></textarea>
       
       <div class="btn-row">
-        <button id="btn-copy" class="btn btn-primary">📋 Copy to Clipboard</button>
-        <button id="btn-mark-posted" class="btn btn-success">✓ Mark as Posted</button>
+        <button id="btn-copy" class="btn btn-primary">Copy to Clipboard</button>
+        <button id="btn-mark-posted" class="btn btn-success">Mark as Posted</button>
       </div>
     </div>
 
-    <!-- Footer Actions -->
-    <div class="footer-actions">
-      <button id="btn-regenerate" class="btn btn-secondary">🔄 Regenerate Drafts</button>
-      <button id="btn-skip" class="btn btn-danger">Skip Post</button>
+    <!-- Card 3: Refine & Regenerate -->
+    <div class="card refine-card">
+      <div class="card-section-title">Refine & Regenerate</div>
+      <input type="text" id="regen-guidance-input" class="guidance-input" placeholder="Custom steering (e.g. focus on latency, candid)...">
+      <div class="refine-actions">
+        <button id="btn-simplify" class="btn btn-secondary" title="Regenerate with simpler, punchier phrasing">Simplify</button>
+        <button id="btn-regenerate" class="btn btn-secondary-accent">Regenerate</button>
+      </div>
     </div>
   </div>
 
