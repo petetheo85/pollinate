@@ -19,6 +19,13 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  const openDashboardBtn = document.getElementById("btn-open-dashboard");
+  if (openDashboardBtn) {
+    openDashboardBtn.addEventListener("click", () => {
+      chrome.tabs.create({ url: "http://127.0.0.1:8501" });
+    });
+  }
+
   // Server Connection Elements
   const portInput = document.getElementById("server-port");
   const tokenInput = document.getElementById("capture-token");

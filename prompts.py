@@ -98,3 +98,25 @@ def format_inline_prompt(
         guidance_section=guidance_section,
         banned_phrases=", ".join(f'"{p}"' for p in BANNED_PHRASES),
     )
+
+
+DM_DRAFT_PROMPT = """You are an assistant drafting a concise, peer-to-peer LinkedIn connection request note or follow-up direct message.
+
+# User Profile & Background
+{profile}
+
+# Recipient
+Name: {name}
+Headline / Company: {headline}
+Internal Notes: {notes}
+
+# Prior Comments Left on Their Posts
+{prior_comments}
+
+# Instructions
+1. Write a 2-3 sentence, highly personalized message.
+2. Ground the message in genuine discussion points from past comments and mutual technical interests.
+3. Tone: peer-to-peer, conversational, respectful, direct.
+4. ZERO FABRICATION: Never invent shared history, mutual acquaintances, or false claims.
+5. NO sales pitch, NO pitch slapping, and NO generic flattery (e.g., "Love your posts!").
+"""

@@ -51,25 +51,35 @@ CAPTURE_PORT=8765
 
 Inspect or edit `context/profile.md` to define your identity, technical stack, voice preferences, and length constraints. You can also edit this directly from the extension Options page.
 
-### 4. Start Capture Server
+### 4. Start Pollinate
 
-Run the local FastAPI server:
+Start both the capture server and Streamlit dashboard together with a single command:
 
 ```bash
-.venv/bin/python capture_server.py
+.venv/bin/python run.py
 ```
 
-The server initializes SQLite in WAL mode (`pollinate.db`) and listens on `http://127.0.0.1:8765`.
+- FastAPI server binds to `http://127.0.0.1:8765`.
+- Streamlit dashboard binds to `http://127.0.0.1:8501`.
+- To run only the capture server without the dashboard, run `.venv/bin/python capture_server.py`.
 
 ### 5. Install Chrome Extension
 
-1. Open `chrome://extensions` in Google Chrome.
-2. Enable **Developer mode** (top right toggle).
-3. Click **Load unpacked** and select the `extension/` directory.
-4. On first load, open extension Options (click the extension icon or navigate to its details):
-   - In the **Server** tab, confirm the port (`8765`) and paste your `CAPTURE_TOKEN`.
-   - Click **Test Connection** to verify server connectivity.
-   - Switch to the **Options** tab to review or edit your profile and voice presets.
+1. Navigate to `chrome://extensions` in Google Chrome.
+2. Enable **Developer mode** using the toggle in the top-right corner.
+3. Click **Load unpacked** and select the `extension/` directory within this project.
+4. Pin Pollinate to your browser toolbar: click the puzzle icon (Extensions) in Chrome's top bar, find Pollinate, and click the pin icon.
+
+### 6. First-Time Extension Configuration
+
+1. Right-click the Pollinate toolbar icon and select **Options** (or click the extension icon to open the Side Panel, then click the gear icon `⚙️`).
+2. On first launch, the **Server** tab opens automatically:
+   - Verify the port matches `CAPTURE_PORT` (default `8765`).
+   - Paste the `CAPTURE_TOKEN` value configured in your `.env`.
+   - Click **Save Settings**, then **Test Connection** to verify server connectivity.
+3. Switch to the **Options** tab to customize your profile facts, tone presets, and draft length constraints.
+
+> **Note:** If you edit files inside `extension/`, navigate back to `chrome://extensions` and click the reload button (`🔄`) on the Pollinate card to apply updates.
 
 ---
 
@@ -92,6 +102,8 @@ The server initializes SQLite in WAL mode (`pollinate.db`) and listens on `http:
 5. **Post & Track**:
    - Click **Copy to Clipboard**, paste into LinkedIn, and post manually.
    - Click **Mark as Posted** in the side panel to save your final comment and timestamp to history.
+6. **Browse History & Author CRM**:
+   - Click the dashboard icon (`📊`) in the side panel header (or **Open Dashboard** in Options) to review past comments, author interactions, and generate direct message outreach drafts.
 
 ---
 

@@ -209,3 +209,7 @@ class DraftResponse(BaseModel):
     drafts: List[SingleDraft]
     duplicate_warning: Optional[AlreadyCommentedInfo] = None
     prior_interaction: Optional[PriorInteractionInfo] = None
+
+
+class DMDraftResult(BaseModel):
+    dm_text: str = PydanticField(description="A concise 2-3 sentence personalized LinkedIn direct message or note")

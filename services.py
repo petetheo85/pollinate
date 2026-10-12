@@ -19,16 +19,19 @@ from db import (
     normalize_author_name,
     transition_post_status,
 )
-from llm import LLMError, analyze_and_draft_post
+from llm import LLMError, analyze_and_draft_post, generate_structured
 from models import (
     AlreadyCommentedInfo,
+    Author,
+    DMDraftResult,
     Draft,
     DraftResponse,
     Post,
     PostStatus,
     PriorInteractionInfo,
+    utc_now,
 )
-from prompts import format_inline_prompt
+from prompts import DM_DRAFT_PROMPT, format_inline_prompt
 
 logger = logging.getLogger(__name__)
 
@@ -169,3 +172,30 @@ def generate_inline_drafts(
         session.add(post)
         session.commit()
         raise
+
+
+def generate_author_dm_draft(author_id: int, session: Session) -> str:
+    """Generates a peer-to-peer LinkedIn direct message based on prior interaction history."""
+    author = session.get(Author, author_id)
+    if not author:
+        raise ValueError(f"Author {author_id} not found.")
+
+    profile = load_profile()
+    priors = get_recent_author_comments(session, author.id, limit=MAX_PRIOR_COMMENTS_IN_PROMPT)
+    prior_bullets = "\n".join(f"- {c}" for c in priors) if priors else "No prior comments recorded."
+
+    prompt = DM_DRAFT_PROMPT.format(
+        profile=profile.strip() if profile else "No profile provided.",
+        name=author.name,
+        headline=author.headline_or_company or "N/A",
+        notes=author.notes or "None",
+        prior_comments=prior_bullets,
+    )
+
+    result = generate_structured(prompt, DMDraftResult)
+    author.last_dm_draft = result.dm_text
+    author.updated_at = utc_now()
+    session.add(author)
+    session.commit()
+    session.refresh(author)
+    return result.dm_text

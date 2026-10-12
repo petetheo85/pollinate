@@ -258,6 +258,13 @@ document.getElementById("btn-retry").addEventListener("click", () => {
   showView("view-idle");
 });
 
+const dashboardBtn = document.getElementById("open-dashboard");
+if (dashboardBtn) {
+  dashboardBtn.addEventListener("click", () => {
+    chrome.tabs.create({ url: "http://127.0.0.1:8501" });
+  });
+}
+
 document.getElementById("open-settings").addEventListener("click", () => {
   if (chrome.runtime.openOptionsPage) {
     chrome.runtime.openOptionsPage();
