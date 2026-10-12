@@ -1,5 +1,6 @@
 """Orchestration services for inline LinkedIn post extraction, scoring, and drafting."""
 
+from datetime import datetime, timezone
 import logging
 import time
 from typing import Optional
@@ -50,6 +51,16 @@ def save_profile(content: str) -> None:
     """Writes profile markdown to PROFILE_PATH, creating parent directories if needed."""
     PROFILE_PATH.parent.mkdir(parents=True, exist_ok=True)
     PROFILE_PATH.write_text(content, encoding="utf-8")
+
+
+def format_local_datetime(dt: Optional[datetime]) -> str:
+    """Formats a UTC datetime into the user's local timezone for dashboard display."""
+    if not dt:
+        return "N/A"
+    # Convert naive or aware UTC datetimes into system local time
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    return dt.astimezone().strftime("%b %d, %Y %H:%M")
 
 
 def generate_inline_drafts(

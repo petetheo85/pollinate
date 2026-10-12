@@ -1,7 +1,6 @@
 """Streamlit application for Pollinate posted history, author CRM, and voice profile."""
 
 import urllib.parse
-from datetime import datetime
 from typing import Optional
 
 import streamlit as st
@@ -21,6 +20,7 @@ from models import (
     PostStatus,
 )
 from services import (
+    format_local_datetime as format_dt,
     generate_author_dm_draft,
     load_profile,
     save_profile,
@@ -71,12 +71,6 @@ def get_db():
     return engine
 
 
-def format_dt(dt: Optional[datetime]) -> str:
-    if not dt:
-        return "N/A"
-    return dt.strftime("%b %d, %Y %H:%M")
-
-
 def is_specific_post_url(url: Optional[str]) -> bool:
     """Returns True if url points to a distinct post rather than the general feed root."""
     if not url:
@@ -98,7 +92,6 @@ nav_choice = st.sidebar.radio(
     "Navigation",
     ["Posted History", "Author CRM", "User Profile"],
 )
-
 
 
 # Posted history

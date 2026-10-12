@@ -1,5 +1,7 @@
 """Tests for services module: profile management, inline drafting orchestration, and DM drafting."""
 
+from datetime import datetime, timezone
+
 import pytest
 from sqlmodel import SQLModel, Session
 
@@ -8,6 +10,7 @@ from db import get_engine, get_or_create_author
 import llm
 from models import Author, DMDraftResult, Post, PostStatus
 from services import (
+    format_local_datetime,
     generate_author_dm_draft,
     load_profile,
     save_profile,
@@ -72,3 +75,20 @@ def test_generate_author_dm_draft_success(test_db_session, monkeypatch):
 def test_generate_author_dm_draft_nonexistent_author_raises(test_db_session):
     with pytest.raises(ValueError, match="Author 9999 not found"):
         generate_author_dm_draft(9999, test_db_session)
+
+
+def test_format_local_datetime_none_returns_na():
+    assert format_local_datetime(None) == "N/A"
+
+
+def test_format_local_datetime_converts_utc_to_local():
+    utc_dt = datetime(2026, 10, 12, 23, 36, 0, tzinfo=timezone.utc)
+    expected_local = utc_dt.astimezone().strftime("%b %d, %Y %H:%M")
+    assert format_local_datetime(utc_dt) == expected_local
+
+
+def test_format_local_datetime_handles_naive_utc():
+    naive_dt = datetime(2026, 10, 12, 23, 36, 0)
+    expected_local = naive_dt.replace(tzinfo=timezone.utc).astimezone().strftime("%b %d, %Y %H:%M")
+    assert format_local_datetime(naive_dt) == expected_local
+
