@@ -92,6 +92,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
       selected_text: selectionText,
       url: tab?.url || "",
       page_title: tab?.title || "",
+      timestamp: Date.now(),
     },
   });
 
@@ -117,6 +118,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         pollinate_state: {
           status: "ready",
           data: data,
+          timestamp: Date.now(),
         },
       });
 
@@ -133,6 +135,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
           status: "error",
           message: message,
           post_id: errJson.post_id || null,
+          timestamp: Date.now(),
         },
       });
       showTemporaryBadge("ERR", "#d9534f", 3000);

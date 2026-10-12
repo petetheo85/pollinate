@@ -39,6 +39,11 @@ function showView(viewId) {
     target.classList.add("active");
   }
 
+  const clearBtn = document.getElementById("btn-clear");
+  if (clearBtn) {
+    clearBtn.style.display = viewId === "view-content" ? "inline-flex" : "none";
+  }
+
   if (viewId === "view-loading") {
     buzzIndex = 0;
     const stepEl = document.getElementById("loading-buzz-step");
@@ -223,7 +228,13 @@ async function executeRegenerate(guidance = "") {
       const data = await response.json();
       const guidanceInput = document.getElementById("regen-guidance-input");
       if (guidanceInput) guidanceInput.value = "";
-      await chrome.storage.local.set({ pollinate_state: { status: "ready", data } });
+      await chrome.storage.local.set({
+        pollinate_state: {
+          status: "ready",
+          data,
+          timestamp: Date.now(),
+        },
+      });
       renderPost(data);
     } else {
       const err = await response.json().catch(() => ({}));
@@ -258,6 +269,16 @@ document.getElementById("btn-retry").addEventListener("click", () => {
   showView("view-idle");
 });
 
+const clearBtn = document.getElementById("btn-clear");
+if (clearBtn) {
+  clearBtn.addEventListener("click", async () => {
+    currentPostData = null;
+    userEditedDrafts = {};
+    await chrome.storage.local.set({ pollinate_state: { status: "idle" } });
+    showView("view-idle");
+  });
+}
+
 const dashboardBtn = document.getElementById("open-dashboard");
 if (dashboardBtn) {
   dashboardBtn.addEventListener("click", () => {
@@ -273,6 +294,8 @@ document.getElementById("open-settings").addEventListener("click", () => {
   }
 });
 
+const STALE_CAPTURE_TTL_MS = 10 * 60 * 1000;
+
 // Sync state on launch & storage change
 async function init() {
   const result = await chrome.storage.local.get("pollinate_state");
@@ -280,7 +303,17 @@ async function init() {
 
   if (!state || state.status === "idle") {
     showView("view-idle");
-  } else if (state.status === "loading") {
+    return;
+  }
+
+  // Auto-expire captures older than 10 minutes to guarantee a fresh start on relaunch
+  if (state.timestamp && (Date.now() - state.timestamp > STALE_CAPTURE_TTL_MS)) {
+    await chrome.storage.local.set({ pollinate_state: { status: "idle" } });
+    showView("view-idle");
+    return;
+  }
+
+  if (state.status === "loading") {
     showView("view-loading");
   } else if (state.status === "error") {
     showError(state.message || "An error occurred.");

@@ -72,3 +72,10 @@ def test_extension_scripts_contain_no_dom_injection_or_automation():
             assert not pattern.search(content), (
                 f"{js_file.name} contains banned pattern '{pattern.pattern}'"
             )
+
+
+def test_sidepanel_contains_clear_button():
+    html_path = config.PROJECT_ROOT / "extension" / "sidepanel.html"
+    content = html_path.read_text(encoding="utf-8")
+    assert 'id="btn-clear"' in content, "sidepanel.html must contain #btn-clear button"
+
