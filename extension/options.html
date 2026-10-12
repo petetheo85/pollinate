@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pollinate Settings</title>
+  <style>
+    :root {
+      --bg: #121417;
+      --card-bg: #1c2025;
+      --border: #2e343d;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+      --accent: #e5a93c;
+      --accent-hover: #d29629;
+      --btn-secondary: #29303a;
+      --btn-secondary-hover: #37404e;
+      --success: #3fb950;
+      --error: #f85149;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 24px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 28px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.4);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .logo {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fde68a 0%, #d97706 100%);
+    }
+
+    h1 {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.01em;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+      line-height: 1.4;
+    }
+
+    .form-group {
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 500;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 12px;
+      background-color: #0d1117;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    input:focus {
+      border-color: var(--accent);
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 24px;
+    }
+
+    button {
+      flex: 1;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      transition: background-color 0.15s ease;
+    }
+
+    .btn-primary {
+      background-color: var(--accent);
+      color: #000;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-hover);
+    }
+
+    .btn-secondary {
+      background-color: var(--btn-secondary);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--btn-secondary-hover);
+    }
+
+    #status-banner {
+      margin-top: 16px;
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      display: none;
+      line-height: 1.4;
+    }
+
+    #status-banner.success {
+      display: block;
+      background-color: rgba(63, 185, 80, 0.15);
+      border: 1px solid rgba(63, 185, 80, 0.4);
+      color: var(--success);
+    }
+
+    #status-banner.error {
+      display: block;
+      background-color: rgba(248, 81, 73, 0.15);
+      border: 1px solid rgba(248, 81, 73, 0.4);
+      color: var(--error);
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="header">
+      <div class="logo"></div>
+      <h1>Pollinate Settings</h1>
+    </div>
+    <p class="subtitle">Configure connection to your local Pollinate server on 127.0.0.1.</p>
+
+    <form id="settings-form">
+      <div class="form-group">
+        <label for="server-port">Server Port</label>
+        <input type="number" id="server-port" min="1" max="65535" value="8765" required>
+      </div>
+
+      <div class="form-group">
+        <label for="capture-token">Capture Bearer Token</label>
+        <input type="password" id="capture-token" placeholder="Paste your CAPTURE_TOKEN" required>
+      </div>
+
+      <div class="button-row">
+        <button type="submit" class="btn-primary" id="save-button">Save</button>
+        <button type="button" class="btn-secondary" id="test-button">Test Connection</button>
+      </div>
+    </form>
+
+    <div id="status-banner"></div>
+  </div>
+
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pollinate</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --card-bg: #161b22;
+      --card-subtle: #21262d;
+      --border: #30363d;
+      --border-accent: #f59e0b;
+      --text: #f0f6fc;
+      --text-muted: #8b949e;
+      --accent: #f59e0b;
+      --accent-hover: #d97706;
+      --accent-soft: rgba(245, 158, 11, 0.12);
+      --btn-secondary: #21262d;
+      --btn-secondary-hover: #30363d;
+      --success: #3fb950;
+      --success-soft: rgba(63, 185, 80, 0.15);
+      --warning: #d29922;
+      --warning-soft: rgba(210, 153, 34, 0.15);
+      --error: #f85149;
+      --error-soft: rgba(248, 81, 73, 0.15);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* Header */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand-icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fde68a 0%, #d97706 100%);
+    }
+
+    .brand-title {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .settings-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 16px;
+      padding: 4px;
+      border-radius: 4px;
+      transition: color 0.15s ease;
+    }
+
+    .settings-btn:hover {
+      color: var(--text);
+    }
+
+    /* States */
+    .view-state {
+      display: none;
+    }
+
+    .view-state.active {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    /* Idle / Welcome View */
+    #view-idle {
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 16px;
+      gap: 12px;
+      color: var(--text-muted);
+    }
+
+    .idle-icon {
+      font-size: 36px;
+      margin-bottom: 8px;
+    }
+
+    .idle-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .idle-desc {
+      font-size: 13px;
+      line-height: 1.5;
+      max-width: 260px;
+    }
+
+    /* Loading View */
+    #view-loading {
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 60px 16px;
+      gap: 16px;
+    }
+
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading-title {
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .loading-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Error View */
+    #view-error {
+      background-color: var(--error-soft);
+      border: 1px solid rgba(248, 81, 73, 0.3);
+      border-radius: 8px;
+      padding: 16px;
+      color: var(--error);
+      gap: 10px;
+    }
+
+    /* Content View */
+    #view-content {
+      gap: 16px;
+    }
+
+    .card {
+      background-color: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+    }
+
+    .author-name {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    .author-headline {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .score-pills {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 12px;
+      background-color: var(--card-subtle);
+      border: 1px solid var(--border);
+    }
+
+    .pill-accent {
+      background-color: var(--accent-soft);
+      border-color: rgba(245, 158, 11, 0.4);
+      color: var(--accent);
+    }
+
+    .pill-success {
+      background-color: var(--success-soft);
+      border-color: rgba(63, 185, 80, 0.4);
+      color: var(--success);
+    }
+
+    .reason-box {
+      font-size: 12px;
+      color: var(--text);
+      margin-top: 10px;
+      padding: 8px 10px;
+      background-color: var(--card-subtle);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 4px 4px 0;
+    }
+
+    /* Warning Banner */
+    .banner {
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      line-height: 1.4;
+      display: none;
+    }
+
+    .banner.warning {
+      display: block;
+      background-color: var(--warning-soft);
+      border: 1px solid rgba(210, 153, 34, 0.4);
+      color: var(--warning);
+    }
+
+    /* Drafts Tabs */
+    .tabs-header {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 6px;
+    }
+
+    .tab-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-weight: 600;
+      padding: 6px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      text-transform: capitalize;
+      transition: all 0.15s ease;
+    }
+
+    .tab-btn.active {
+      background-color: var(--card-subtle);
+      color: var(--accent);
+    }
+
+    .draft-insight {
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .draft-insight strong {
+      color: var(--accent);
+    }
+
+    textarea.draft-editor {
+      width: 100%;
+      min-height: 140px;
+      background-color: #0b0e14;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: inherit;
+      font-size: 13px;
+      line-height: 1.6;
+      padding: 10px 12px;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.15s ease;
+    }
+
+    textarea.draft-editor:focus {
+      border-color: var(--accent);
+    }
+
+    /* Buttons */
+    .btn-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    button.btn {
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-primary {
+      background-color: var(--accent);
+      color: #000;
+      flex: 1;
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-hover);
+    }
+
+    .btn-success {
+      background-color: var(--success);
+      color: #fff;
+      flex: 1;
+    }
+
+    .btn-success:hover {
+      background-color: #2ea043;
+    }
+
+    .btn-secondary {
+      background-color: var(--btn-secondary);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--btn-secondary-hover);
+    }
+
+    .btn-danger {
+      background-color: transparent;
+      color: var(--error);
+      border: 1px solid rgba(248, 81, 73, 0.4);
+    }
+
+    .btn-danger:hover {
+      background-color: var(--error-soft);
+    }
+
+    /* Footer actions */
+    .footer-actions {
+      display: flex;
+      justify-content: space-between;
+      gap: 8px;
+      margin-top: 16px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <div class="top-bar">
+    <div class="brand">
+      <div class="brand-icon"></div>
+      <span class="brand-title">Pollinate</span>
+    </div>
+    <button id="open-settings" class="settings-btn" title="Options">⚙️</button>
+  </div>
+
+  <!-- Idle State -->
+  <div id="view-idle" class="view-state active">
+    <div class="idle-icon">🐝</div>
+    <div class="idle-title">Ready to Pollinate</div>
+    <div class="idle-desc">
+      Highlight a LinkedIn post and visible comments, right-click, and select <strong>"Capture to Pollinate"</strong>.
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div id="view-loading" class="view-state">
+    <div class="spinner"></div>
+    <div class="loading-title">Drafting Responses...</div>
+    <div class="loading-desc">Extracting themes and generating 3 distinct perspectives.</div>
+  </div>
+
+  <!-- Error State -->
+  <div id="view-error" class="view-state">
+    <div id="error-message">An error occurred.</div>
+    <button id="btn-retry" class="btn btn-secondary" style="margin-top: 8px;">Dismiss</button>
+  </div>
+
+  <!-- Main Content State -->
+  <div id="view-content" class="view-state">
+    <!-- Duplicate Warning Banner -->
+    <div id="duplicate-banner" class="banner warning"></div>
+
+    <!-- Post Metadata Card -->
+    <div class="card">
+      <div id="post-author" class="author-name"></div>
+      <div id="post-headline" class="author-headline"></div>
+      <div class="score-pills">
+        <span id="pill-relevance" class="pill pill-accent"></span>
+        <span id="pill-opportunity" class="pill pill-success"></span>
+        <span id="pill-interaction" class="pill" style="display: none;"></span>
+      </div>
+      <div id="post-reason" class="reason-box"></div>
+    </div>
+
+    <!-- Drafts Card -->
+    <div class="card" style="flex: 1; display: flex; flex-direction: column;">
+      <div class="tabs-header" id="tabs-container"></div>
+      <div class="draft-insight" id="draft-insight"></div>
+      <textarea id="draft-text" class="draft-editor"></textarea>
+      
+      <div class="btn-row">
+        <button id="btn-copy" class="btn btn-primary">📋 Copy to Clipboard</button>
+        <button id="btn-mark-posted" class="btn btn-success">✓ Mark as Posted</button>
+      </div>
+    </div>
+
+    <!-- Footer Actions -->
+    <div class="footer-actions">
+      <button id="btn-regenerate" class="btn btn-secondary">🔄 Regenerate Drafts</button>
+      <button id="btn-skip" class="btn btn-danger">Skip Post</button>
+    </div>
+  </div>
+
+  <script src="sidepanel.js"></script>
+</body>
+</html>
