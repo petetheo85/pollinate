@@ -7,6 +7,7 @@ Pollinate is a local-first workflow tool for drafting grounded, authentic respon
 - **Zero DOM Scraping or Injection**: The extension contains no content scripts, no hover overlays, and no automated DOM interaction with `linkedin.com`. This eliminates bot-detection risks and prevents account flags.
 - **User-Initiated Selection Only**: Captures happen only when the user explicitly highlights post text and comments, right-clicks, and selects "Pollinate" (or presses `Alt+Shift+P`).
 - **Local-Only Boundary**: Extension host permissions are strictly locked to `http://127.0.0.1/*`. The backend server binds solely to `127.0.0.1` and authenticates requests using a bearer token verified via constant-time comparison (`hmac.compare_digest`).
+- **LLM Provider**: Extraction, analysis, and response drafting currently use the Google Gemini API. Future releases are planned to add compatibility for additional LLM provider APIs (such as Anthropic, OpenAI, and local endpoints).
 - **Single Source of Truth**: User profile, expertise, tone, and length constraints live in `context/profile.md`. Both the LLM prompt engine and the extension Options page read and write this file directly.
 - **Manual Posting**: Pollinate handles analysis and response drafting. Copying and posting to LinkedIn remains an intentional, manual user action.
 
@@ -111,7 +112,7 @@ Start both the capture server and Streamlit dashboard together with a single com
 
 | Variable | Required | Default | Description |
 |---|---|---|---|
-| `LLM_API_KEY` | Yes | — | Google AI API key for Gemini. |
+| `LLM_API_KEY` | Yes | — | Google AI API key for Gemini (support for other LLM APIs planned). |
 | `MODEL_NAME` | Yes | `gemini-3.8-flash` | Gemini model identifier. |
 | `CAPTURE_TOKEN` | Yes | — | Bearer token authenticating extension requests (minimum 24 characters). |
 | `CAPTURE_PORT` | No | `8765` | Local port for the FastAPI server. |
