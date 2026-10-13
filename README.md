@@ -2,7 +2,7 @@
 
 Pollinate is a local first workflow tool for drafting grounded, authentic responses to LinkedIn posts. It combines a Chrome Side Panel extension with a local Python backend and Gemini inference.
 
-<video src="assets/pollinate_demo.mp4" controls="controls" width="100%"></video>
+[<video src="assets/pollinate_demo.mp4" controls="controls" width="100%"></video>](https://private-user-images.githubusercontent.com/57020619/672555555-f2477553-af30-4b53-90c6-8c3c645e995d.mp4?jwt=eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3OTE5MTQ1MzksIm5iZiI6MTc5MTkxNDIzOSwicGF0aCI6Ii81NzAyMDYxOS82NzI1NTU1NTUtZjI0Nzc1NTMtYWYzMC00YjUzLTkwYzYtOGMzYzY0NWU5OTVkLm1wND9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNjEwMTMlMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjYxMDEzVDE3NTcxOVomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTliN2QyMzA0YjJmYTBjZmQ1ODk5MDEyZTIwZjA2N2UxYmE3ZTZmYjVhOTY3YzgzMzY0YWQxMmVlNzUyYjBmNWUmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0JnJlc3BvbnNlLWNvbnRlbnQtdHlwZT12aWRlbyUyRm1wNCJ9.qm1qhSpyb3-inR2kCHz1uWu77Yb-mOVZQ9ftfFePe04)
 
 ## Architecture & Design Decisions
 
