@@ -1,12 +1,14 @@
 # Pollinate
 
-Pollinate is a local-first workflow tool for drafting grounded, authentic responses to LinkedIn posts. It combines a Chrome Side Panel extension with a local Python backend and Gemini inference.
+Pollinate is a local first workflow tool for drafting grounded, authentic responses to LinkedIn posts. It combines a Chrome Side Panel extension with a local Python backend and Gemini inference.
+
+<video src="assets/pollinate_demo.mp4" controls="controls" width="100%"></video>
 
 ## Architecture & Design Decisions
 
 - **Zero DOM Scraping or Injection**: The extension contains no content scripts, no hover overlays, and no automated DOM interaction with `linkedin.com`. This eliminates bot-detection risks and prevents account flags.
-- **User-Initiated Selection Only**: Captures happen only when the user explicitly highlights post text and comments, right-clicks, and selects "Pollinate" (or presses `Alt+Shift+P`).
-- **Local-Only Boundary**: Extension host permissions are strictly locked to `http://127.0.0.1/*`. The backend server binds solely to `127.0.0.1` and authenticates requests using a bearer token verified via constant-time comparison (`hmac.compare_digest`).
+- **User Initiated Selection Only**: Captures happen only when the user explicitly highlights post text and comments, right clicks, and selects "Pollinate" (or presses `Alt+Shift+P`).
+- **Local Only Boundary**: Extension host permissions are strictly locked to `http://127.0.0.1/*`. The backend server binds solely to `127.0.0.1` and authenticates requests using a bearer token verified via constant time comparison (`hmac.compare_digest`).
 - **LLM Provider**: Extraction, analysis, and response drafting currently use the Google Gemini API. Future releases are planned to add compatibility for additional LLM provider APIs (such as Anthropic, OpenAI, and local endpoints).
 - **Single Source of Truth**: User profile, expertise, tone, and length constraints live in `context/profile.md`. Both the LLM prompt engine and the extension Options page read and write this file directly.
 - **Manual Posting**: Pollinate handles analysis and response drafting. Copying and posting to LinkedIn remains an intentional, manual user action.
@@ -67,13 +69,13 @@ Start both the capture server and Streamlit dashboard together with a single com
 ### 5. Install Chrome Extension
 
 1. Navigate to `chrome://extensions` in Google Chrome.
-2. Enable **Developer mode** using the toggle in the top-right corner.
+2. Enable **Developer mode** using the toggle in the top right corner.
 3. Click **Load unpacked** and select the `extension/` directory within this project.
 4. Pin Pollinate to your browser toolbar: click the puzzle icon (Extensions) in Chrome's top bar, find Pollinate, and click the pin icon.
 
-### 6. First-Time Extension Configuration
+### 6. First Time Extension Configuration
 
-1. Right-click the Pollinate toolbar icon and select **Options** (or click the extension icon to open the Side Panel, then click the gear icon `⚙️`).
+1. Right click the Pollinate toolbar icon and select **Options** (or click the extension icon to open the Side Panel, then click the gear icon `⚙️`).
 2. On first launch, the **Server** tab opens automatically:
    - Verify the port matches `CAPTURE_PORT` (default `8765`).
    - Paste the `CAPTURE_TOKEN` value configured in your `.env`.
@@ -87,7 +89,7 @@ Start both the capture server and Streamlit dashboard together with a single com
 ## Usage Workflow
 
 1. **Highlight Post**: On LinkedIn, select the text of a post along with any visible comments you want considered for context.
-2. **Trigger Pollinate**: Right-click the selection and choose **Pollinate** (or use the shortcut `Alt+Shift+P`).
+2. **Trigger Pollinate**: Right click the selection and choose **Pollinate** (or use the shortcut `Alt+Shift+P`).
 3. **Review Analysis & Drafts**: The Chrome Side Panel opens with:
    - Author metadata, topic tags, and constructive relevance rationale.
    - Relevance and Opportunity scores (1–10).
@@ -98,13 +100,15 @@ Start both the capture server and Streamlit dashboard together with a single com
      - **Counterpoint**: Polite, constructive alternative perspective or boundary condition.
 4. **Refine**:
    - Edit any draft directly in the textarea.
-   - Click **Simplify** to rewrite the drafts in punchier, down-to-earth language.
-   - Enter custom steering guidance (e.g., *"Focus on latency trade-offs"*) and click **Regenerate**.
+   - Click **Simplify** to rewrite the drafts in punchier, down to earth language.
+   - Enter custom steering guidance (e.g., *"Focus on latency trade offs"*) and click **Regenerate**.
 5. **Post & Track**:
    - Click **Copy to Clipboard**, paste into LinkedIn, and post manually.
    - Click **Mark as Posted** in the side panel to save your final comment and timestamp to history.
 6. **Browse History & Author CRM**:
    - Click the dashboard icon (`📊`) in the side panel header (or **Open Dashboard** in Options) to review past comments, author interactions, and generate direct message outreach drafts.
+
+   ![Pollinate Author CRM](assets/pollinate_crm.png)
 
 ---
 
